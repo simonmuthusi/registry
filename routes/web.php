@@ -1,5 +1,5 @@
 <?php
-
+use App\Person;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,10 +11,20 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'PersonController@index');
 
 Auth::routes();
+Route::resource('person', 'PersonController');
 
-Route::get('/home', 'HomeController@index');
+Route::get('/home', 'PersonController@index');
+
+Route::post('/person/store',[
+    'as' => 'person.store',
+    'uses' => 'PersonController@store'
+])->middleware('auth');
+
+Route::delete('/person/{id}', function ($id) {
+    Person::findOrFail($id)->delete();
+
+    return redirect('/');
+})->middleware('auth');
