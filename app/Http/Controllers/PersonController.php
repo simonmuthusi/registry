@@ -10,6 +10,8 @@ use Auth;
 use Carbon\Carbon;
 use Session;
 use Mail;
+use SMSProvider;
+use Config;
 
 class PersonController extends Controller {
     private $STATUS = ['no','yes'];
@@ -79,6 +81,10 @@ class PersonController extends Controller {
 
         Session::flash('create_message', 'Person successfully created');
 
+        // send sms
+        $sms_message = "Hi ".$request->firstname.",\nYou have been created on ".Config::get('app.name')."\n Details: ".$request->firstname." ".$request->lastname.", ".$request->age." years, ".$request->phone_number."\nRegistry Team";
+
+        SMSProvider::sendMessage($request->phone_number, $sms_message);
         return redirect()->back();
     }
 
@@ -122,8 +128,6 @@ class PersonController extends Controller {
             'persons' => $persons,
         ]);
 
-        // return view('events.edit')->withTask($event);
-
     }
 
     /**
@@ -143,16 +147,26 @@ class PersonController extends Controller {
             'lastname' => 'required',
             'age' => 'required|numeric|min:18|max:200',
         ]);
+        // if phone number is different validate it 
+        if($person->phone_number != $request->phone_number)
+        {
+            $this->validate($request, [
+            'phone_number' => 'required|phone:US,BE,KE|unique:people',
+        ]);
+        }
+        
         
 
         $person->fill(array(
             "firstname" => $request->firstname,
             "lastname" => $request->lastname,
             "age" => $request->age,
-            "phone_number" => $request->phone_number
+            "phone_number" => $request->phone_number,
             ))->save();
 
         Session::flash('update_message', 'Person successfully updated');
+
+        // $sms_message = "Hi ".$request->firstname.",\nYour details on ".Config::get('app.name')."\n have been updated. Details: ".$request->firstname." ".$request->lastname.", ".$request->age." years, ".$request->phone_number."\nRegistry Team";
 
         return redirect()->back();
     }

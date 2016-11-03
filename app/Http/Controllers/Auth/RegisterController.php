@@ -6,6 +6,9 @@ use App\User;
 use Validator;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\Hash;
+use Mail;
+use Config;
 
 class RegisterController extends Controller
 {
@@ -27,7 +30,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/login';
 
     /**
      * Create a new controller instance.
@@ -50,7 +53,7 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'name' => 'required|max:255',
             'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|min:6|confirmed',
+            // 'password' => 'required|min:6|confirmed',
         ]);
     }
 
@@ -62,10 +65,37 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $mypassword = str_random(8);
+
+        $user =  User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => bcrypt($data['password']),
+            'password' => bcrypt($mypassword),
+            // 'password' => bcrypt($data['password']),
         ]);
+
+        // send user email with login credentials
+        $subject_body = "New user created on ".Config::get('app.name');
+        $message_body = "Hi ".$data['name']."\nYou have been created as a user on ".Config::get('app.name')."\nLogin credentials:\nUsername: ".$data['email']."\nPassword: ".$mypassword."\nThanks ".Config::get('app.name'). " Team";
+
+        $mail_data = array(
+            "subject"=>$subject_body,
+            "body"=>$message_body,
+            "participants"=>$data['email'],
+            );
+        try{
+            Mail::send([], [], function ($message) use ($mail_data) {
+              $message->to($mail_data['participants'])
+                ->subject($mail_data['subject'])
+                ->setBody($mail_data['body']);
+            });
+        }
+        catch(Exception $e)
+        {
+            Session::flash('error_message', 'User created but email not sent. Username: '.$data['email']." Password: ".$mypassword);
+        }
+
+        return $user;
+
     }
 }

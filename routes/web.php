@@ -11,20 +11,23 @@ use App\Person;
 |
 */
 
-Route::get('/', 'PersonController@index');
+Route::get('/', 'PersonController@index')->middleware('auth');
 
 Auth::routes();
-Route::resource('person', 'PersonController');
-
-Route::get('/home', 'PersonController@index');
-
-Route::post('/person/store',[
-    'as' => 'person.store',
-    'uses' => 'PersonController@store'
-])->middleware('auth');
 
 Route::delete('/person/{id}', function ($id) {
     Person::findOrFail($id)->delete();
 
     return redirect('/');
 })->middleware('auth');
+
+Route::resource('person', 'PersonController');
+
+Route::get('/home', 'PersonController@index')->middleware('auth');
+
+Route::post('/person/store',[
+    'as' => 'person.store',
+    'uses' => 'PersonController@store'
+])->middleware('auth');
+
+

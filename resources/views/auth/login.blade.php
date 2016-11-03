@@ -3,7 +3,19 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-md-4 col-md-offset-0">
+            <div class="panel panel-default">
+                <div class="panel-heading">{{ config('app.name', 'Laravel') }} features</div>
+                <div class="panel-body">
+                    <ul>
+                        <li>Create and manage persons</li>
+                        <li>View registry</li>
+                        <li>Create person</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-md-offset-0">
             <div class="panel panel-default">
                 <div class="panel-heading">Login</div>
                 <div class="panel-body">
